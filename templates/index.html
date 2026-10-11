@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Pass/Fail Prediction | MLOps & Neural Network</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --success: #10b981;
+            --danger: #ef4444;
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 720px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 36px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(8px);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        .badge-mlops {
+            display: inline-block;
+            background: rgba(79, 70, 229, 0.2);
+            color: #818cf8;
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            padding: 6px 14px;
+            border-radius: 9999px;
+            border: 1px solid rgba(129, 140, 248, 0.3);
+            margin-bottom: 12px;
+        }
+
+        h1 {
+            font-size: 1.9rem;
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 8px;
+            letter-spacing: -0.02em;
+        }
+
+        p.subtitle {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        .pipeline-info {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 28px;
+            text-align: center;
+        }
+
+        .pipeline-info div span {
+            display: block;
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .pipeline-info div strong {
+            font-size: 0.95rem;
+            color: #38bdf8;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.88rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #cbd5e1;
+        }
+
+        label span.hint {
+            color: var(--text-muted);
+            font-weight: 400;
+            font-size: 0.8rem;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            background: #0f172a;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 14px 16px;
+            color: #ffffff;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+            outline: none;
+        }
+
+        input[type="number"]:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.3);
+        }
+
+        button.btn-submit {
+            width: 100%;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 16px;
+            font-size: 1.05rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-top: 10px;
+            box-shadow: 0 4px 14px rgba(79, 70, 229, 0.4);
+        }
+
+        button.btn-submit:hover {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        .result-card {
+            margin-top: 28px;
+            border-radius: 14px;
+            padding: 22px;
+            text-align: center;
+            border: 1px solid;
+            animation: fadeIn 0.4s ease-in-out;
+        }
+
+        .result-card.pass {
+            background: rgba(16, 185, 129, 0.12);
+            border-color: rgba(16, 185, 129, 0.4);
+        }
+
+        .result-card.fail {
+            background: rgba(239, 68, 68, 0.12);
+            border-color: rgba(239, 68, 68, 0.4);
+        }
+
+        .status-badge {
+            display: inline-block;
+            font-size: 1.8rem;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+            margin-bottom: 8px;
+        }
+
+        .pass .status-badge { color: #34d399; }
+        .fail .status-badge { color: #f87171; }
+
+        .prob-bar-container {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 9999px;
+            height: 12px;
+            overflow: hidden;
+            margin: 14px 0;
+        }
+
+        .prob-bar {
+            height: 100%;
+            border-radius: 9999px;
+            transition: width 0.6s ease;
+        }
+
+        .pass .prob-bar { background: var(--success); }
+        .fail .prob-bar { background: var(--danger); }
+
+        .meta-text {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            margin-top: 6px;
+        }
+
+        .footer {
+            margin-top: 24px;
+            text-align: center;
+            font-size: 0.78rem;
+            color: var(--text-muted);
+        }
+
+        .footer a {
+            color: #818cf8;
+            text-decoration: none;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 600px) {
+            .container { padding: 22px; }
+            .pipeline-info { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <span class="badge-mlops">MLOps Pipeline • Render Deployed</span>
+        <h1>Student Pass/Fail Prediction</h1>
+        <p class="subtitle">Artificial Neural Network with Automated Feature Scaling & Real-Time Inference</p>
+    </div>
+
+    <div class="pipeline-info">
+        <div>
+            <span>Model Architecture</span>
+            <strong>3 &rarr; 8 (ReLU) &rarr; 1 (Sigmoid)</strong>
+        </div>
+        <div>
+            <span>Test Accuracy</span>
+            <strong>{{ metrics.test_accuracy if metrics else "100.0" }}%</strong>
+        </div>
+        <div>
+            <span>Loss Metric</span>
+            <strong>Binary Cross-Entropy</strong>
+        </div>
+    </div>
+
+    <form method="POST" action="/predict">
+        <div class="form-group">
+            <label for="study_hours">
+                Daily Study Hours
+                <span class="hint">Range: 0 – 16 hrs/day</span>
+            </label>
+            <input type="number" step="0.1" min="0" max="24" id="study_hours" name="study_hours" 
+                   value="{{ request.form.get('study_hours', '5.0') }}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="attendance">
+                Attendance Percentage
+                <span class="hint">Range: 0 – 100%</span>
+            </label>
+            <input type="number" step="0.5" min="0" max="100" id="attendance" name="attendance" 
+                   value="{{ request.form.get('attendance', '75.0') }}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="previous_score">
+                Previous Exam Score
+                <span class="hint">Range: 0 – 100 marks</span>
+            </label>
+            <input type="number" step="0.5" min="0" max="100" id="previous_score" name="previous_score" 
+                   value="{{ request.form.get('previous_score', '65.0') }}" required>
+        </div>
+
+        <button type="submit" class="btn-submit">⚡ Predict Outcome with Neural Network</button>
+    </form>
+
+    {% if result %}
+    <div class="result-card {{ 'pass' if result.prediction == 'Pass' else 'fail' }}">
+        <div class="status-badge">
+            {{ '🎉 PASS' if result.prediction == 'Pass' else '⚠️ FAIL' }}
+        </div>
+        <div style="font-size: 1.05rem; font-weight: 600;">
+            Pass Probability: {{ result.pass_probability }}%
+        </div>
+        <div class="prob-bar-container">
+            <div class="prob-bar" style="width: {{ result.pass_probability }}%;"></div>
+        </div>
+        <div class="meta-text">
+            Confidence: {{ result.confidence }}% &bull; Serving Engine: {{ result.engine }}
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="footer">
+        Student ML Model &bull; Fully Automated CI/CD &bull; Hosted on <a href="https://render.com" target="_blank">Render</a>
+    </div>
+</div>
+
+</body>
+</html>

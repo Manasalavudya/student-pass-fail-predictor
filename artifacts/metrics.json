@@ -1,0 +1,9 @@
+{
+    "test_loss": 0.0,
+    "test_accuracy": 100.0,
+    "precision": 100.0,
+    "recall": 100.0,
+    "f1_score": 100.0,
+    "epochs": 100,
+    "architecture": "Input(3) -> Dense(8, ReLU) -> Dense(1, Sigmoid)"
+}
