@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MLOps Live Model & Drift Monitoring</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 30px 20px;
+        }
+
+        .container {
+            max-width: 1080px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            font-weight: 800;
+        }
+
+        .header-links a {
+            display: inline-block;
+            background: rgba(79, 70, 229, 0.2);
+            color: #818cf8;
+            padding: 8px 18px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            border: 1px solid rgba(129, 140, 248, 0.3);
+            transition: all 0.2s;
+        }
+
+        .header-links a:hover {
+            background: var(--primary);
+            color: #fff;
+        }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            border-radius: 9999px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .status-pill.healthy {
+            background: rgba(16, 185, 129, 0.2);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.4);
+        }
+
+        .status-pill.warning {
+            background: rgba(245, 158, 11, 0.2);
+            color: #fbbf24;
+            border: 1px solid rgba(245, 158, 11, 0.4);
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 18px;
+            margin-bottom: 28px;
+        }
+
+        .metric-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 22px;
+            position: relative;
+        }
+
+        .metric-card .title {
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .metric-card .value {
+            font-size: 1.9rem;
+            font-weight: 800;
+            color: #ffffff;
+        }
+
+        .metric-card .subtitle {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            margin-top: 6px;
+        }
+
+        .section-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 26px;
+            margin-bottom: 26px;
+        }
+
+        .section-card h2 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .drift-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 14px;
+        }
+
+        .drift-item {
+            background: #0f172a;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .drift-item .feat-name {
+            font-weight: 700;
+            font-size: 0.95rem;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .badge-safe { color: #34d399; font-size: 0.8rem; }
+        .badge-drift { color: #f87171; font-size: 0.8rem; }
+
+        .drift-stat {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.88rem;
+            margin-top: 10px;
+        }
+
+        th, td {
+            padding: 12px 14px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            background: rgba(15, 23, 42, 0.6);
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 0.78rem;
+            text-transform: uppercase;
+        }
+
+        .pred-pass { color: #34d399; font-weight: 700; }
+        .pred-fail { color: #f87171; font-weight: 700; }
+
+        .tool-box {
+            background: rgba(79, 70, 229, 0.1);
+            border: 1px solid rgba(129, 140, 248, 0.3);
+            border-radius: 14px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .tool-box h3 {
+            font-size: 1rem;
+            color: #818cf8;
+            margin-bottom: 8px;
+        }
+
+        .tool-box p {
+            font-size: 0.85rem;
+            color: #cbd5e1;
+            line-height: 1.6;
+        }
+
+        .tool-box code {
+            background: #0f172a;
+            padding: 3px 6px;
+            border-radius: 4px;
+            color: #38bdf8;
+            font-size: 0.82rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <div>
+            <h1>📊 MLOps Live Telemetry & Model Monitoring</h1>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 4px;">
+                Real-time tracking of requests, inference latency, prediction outcomes, and data drift.
+            </p>
+        </div>
+        <div class="header-links">
+            <span class="status-pill {{ 'warning' if summary.data_drift.drift_detected else 'healthy' }}">
+                ● System {{ summary.system_status }}
+            </span>
+            <a href="/">← Prediction Portal</a>
+        </div>
+    </div>
+
+    <!-- Telemetry Cards -->
+    <div class="metrics-grid">
+        <div class="metric-card">
+            <div class="title">Total Predictions Logged</div>
+            <div class="value">{{ summary.total_requests }}</div>
+            <div class="subtitle">Live traffic served</div>
+        </div>
+        <div class="metric-card">
+            <div class="title">Pass Rate</div>
+            <div class="value" style="color: #38bdf8;">{{ summary.pass_rate }}%</div>
+            <div class="subtitle">{{ summary.pass_count }} Pass / {{ summary.fail_count }} Fail</div>
+        </div>
+        <div class="metric-card">
+            <div class="title">Average Latency</div>
+            <div class="value" style="color: #34d399;">{{ summary.avg_latency_ms }} ms</div>
+            <div class="subtitle">Inference response time</div>
+        </div>
+        <div class="metric-card">
+            <div class="title">Average Confidence</div>
+            <div class="value" style="color: #a78bfa;">{{ summary.avg_probability }}%</div>
+            <div class="subtitle">Neural Network probability</div>
+        </div>
+    </div>
+
+    <!-- Data Drift Monitoring Section -->
+    <div class="section-card">
+        <h2>🔬 Data Drift & Feature Distribution Monitor</h2>
+        <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 16px;">
+            Compares live incoming inference inputs against baseline training data means. Drift is flagged if input distributions shift by > 25%.
+        </p>
+
+        <div class="drift-grid">
+            {% if summary.data_drift.features %}
+                {% for feat, data in summary.data_drift.features.items() %}
+                <div class="drift-item">
+                    <div class="feat-name">
+                        <span>{{ feat }}</span>
+                        {% if data.drifted %}
+                        <span class="badge-drift">⚠️ Drift Detected</span>
+                        {% else %}
+                        <span class="badge-safe">✓ In Distribution</span>
+                        {% endif %}
+                    </div>
+                    <div class="drift-stat">
+                        • Training Baseline Mean: <strong>{{ data.baseline_mean }}</strong><br>
+                        • Live Requests Mean: <strong>{{ data.live_mean }}</strong><br>
+                        • Variation: <strong>{{ data.difference_pct }}%</strong>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p style="color: var(--text-muted); font-size: 0.88rem;">No predictions logged yet. Submit a prediction on the home page to start tracking live drift.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Live Prediction History Table -->
+    <div class="section-card">
+        <h2>🕒 Recent Live Inferences (Latest 10)</h2>
+        {% if summary.recent_logs %}
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Study Hours</th>
+                        <th>Attendance</th>
+                        <th>Prev Score</th>
+                        <th>Prediction</th>
+                        <th>Pass Probability</th>
+                        <th>Latency</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in summary.recent_logs %}
+                    <tr>
+                        <td style="color: var(--text-muted);">{{ row.timestamp }}</td>
+                        <td>{{ row.study_hours }} hrs</td>
+                        <td>{{ row.attendance }}%</td>
+                        <td>{{ row.previous_score }}</td>
+                        <td class="{{ 'pred-pass' if row.prediction == 'Pass' else 'pred-fail' }}">
+                            {{ row.prediction }}
+                        </td>
+                        <td>{{ row.pass_probability }}%</td>
+                        <td style="color: #38bdf8;">{{ row.latency_ms }} ms</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p style="color: var(--text-muted); font-size: 0.88rem; padding: 12px 0;">
+            No requests logged yet. <a href="/" style="color: #818cf8;">Go to Prediction Portal</a> and test a prediction.
+        </p>
+        {% endif %}
+    </div>
+
+    <!-- External Tool Setup Guide -->
+    <div class="tool-box">
+        <h3>🛡️ External 24/7 Cloud Monitoring Tool Setup (UptimeRobot)</h3>
+        <p>
+            After deploying to Render, connect the free monitoring tool <strong>UptimeRobot</strong> to monitor your live URL:
+            <br>
+            1. Create a free account at <a href="https://uptimerobot.com" target="_blank" style="color: #38bdf8;">UptimeRobot.com</a>.<br>
+            2. Click <strong>+ Add New Monitor</strong> &rarr; Monitor Type: <code>HTTP(s)</code>.<br>
+            3. Friendly Name: <code>Student ML Predictor</code>.<br>
+            4. URL: <code>https://your-app-name.onrender.com/health</code> (Monitoring interval: <strong>5 minutes</strong>).<br>
+            5. <strong>Benefit:</strong> This automatically prevents Render's free tier from sleeping, guarantees 100% uptime, and emails you if any outage occurs!
+        </p>
+    </div>
+</div>
+
+</body>
+</html>

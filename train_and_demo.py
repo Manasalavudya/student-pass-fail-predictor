@@ -12,7 +12,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 import tensorflow as tf
 from tensorflow import keras
-
+import mlflow
+import mlflow.keras
 def main():
     print("=" * 65)
     print("  STUDENT PASS / FAIL PREDICTION USING NEURAL NETWORK")

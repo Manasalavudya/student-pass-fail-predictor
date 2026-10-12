@@ -40,5 +40,9 @@ class TestMLOpsPipeline(unittest.TestCase):
         self.assertIn("result", response.json)
         self.assertEqual(response.json["result"]["prediction"], "Pass")
 
+    def test_flask_monitoring_endpoint(self):
+        response = self.client.get("/monitoring")
+        self.assertEqual(response.status_code, 200)
+
 if __name__ == "__main__":
     unittest.main()

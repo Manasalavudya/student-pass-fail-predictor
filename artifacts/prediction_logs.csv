@@ -1,0 +1,2 @@
+timestamp,study_hours,attendance,previous_score,prediction,pass_probability,latency_ms
+2026-10-12 22:39:39,7.0,85.0,75.0,Pass,100.0,36869.91
